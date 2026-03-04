@@ -1,0 +1,77 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Log de Webhooks{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Log de Webhooks</h1>
+        <p class="text-muted mb-0 small">
+            Eventos recebidos do Pagar.me (armazenados em memória — resetados ao reiniciar o servidor)
+        </p>
+    </div>
+</div>
+
+{% if not logs %}
+<div class="alert alert-info">
+    Nenhum evento recebido ainda.
+    <br>
+    <small class="mt-1 d-block">
+        Configure seu webhook na Dashboard do Pagar.me apontando para
+        <code>https://&lt;seu-ngrok&gt;.ngrok.io/webhooks/pagarme/</code>
+        e realize uma transação para ver os eventos aqui.
+    </small>
+</div>
+{% else %}
+<p class="text-muted small mb-3">{{ logs|length }} evento(s) — mais recente primeiro</p>
+<div class="accordion" id="webhookAccordion">
+    {% for log in logs %}
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button
+                class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapse-{{ forloop.counter }}"
+                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+            >
+                <span class="badge bg-secondary me-2">{{ forloop.counter }}</span>
+                <strong class="me-2">{{ log.event_type }}</strong>
+                <span class="text-muted small me-3">{{ log.description }}</span>
+                <span class="text-muted small ms-auto font-monospace">{{ log.received_at }}</span>
+            </button>
+        </h2>
+        <div
+            id="collapse-{{ forloop.counter }}"
+            class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+            data-bs-parent="#webhookAccordion"
+        >
+            <div class="accordion-body">
+                <dl class="row mb-3">
+                    <dt class="col-sm-3">Tipo do Evento</dt>
+                    <dd class="col-sm-9"><code>{{ log.event_type }}</code></dd>
+
+                    <dt class="col-sm-3">Descrição</dt>
+                    <dd class="col-sm-9">{{ log.description }}</dd>
+
+                    <dt class="col-sm-3">ID do Objeto</dt>
+                    <dd class="col-sm-9"><code>{{ log.object_id }}</code></dd>
+
+                    <dt class="col-sm-3">Conta (account_id)</dt>
+                    <dd class="col-sm-9"><code>{{ log.account_id }}</code></dd>
+
+                    <dt class="col-sm-3">Recebido em</dt>
+                    <dd class="col-sm-9">{{ log.received_at }}</dd>
+                </dl>
+                <h6 class="mb-2">Payload completo:</h6>
+                <pre class="bg-dark text-light p-3 rounded small"
+                     style="max-height: 400px; overflow-y: auto;">{{ log.payload }}</pre>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}

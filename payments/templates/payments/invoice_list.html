@@ -1,0 +1,84 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Faturas{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Faturas</h1>
+        {% if sub %}
+        <small class="text-muted">
+            Assinatura: <code>{{ sub.id }}</code>
+            {% if sub.customer %} — {{ sub.customer.name }}{% endif %}
+        </small>
+        {% endif %}
+    </div>
+    <div>
+        {% if sub %}
+        <a href="{% url 'subscription_detail' sub.id %}"
+           class="btn btn-outline-secondary btn-sm me-2">&larr; Assinatura</a>
+        {% endif %}
+        <a href="{% url 'subscription_list' %}" class="btn btn-outline-secondary btn-sm">&larr; Assinaturas</a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+{% if invoices %}
+<div class="table-responsive">
+    <table class="table table-hover bg-white shadow-sm rounded">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Status</th>
+                <th>Valor</th>
+                <th>Meio de Pagamento</th>
+                <th>Criada em</th>
+                <th>Vence em</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td><code class="small">{{ invoice.id }}</code></td>
+                <td>
+                    {% if invoice.status == "paid" %}
+                        <span class="badge bg-success">Paga</span>
+                    {% elif invoice.status == "pending" %}
+                        <span class="badge bg-warning text-dark">Pendente</span>
+                    {% elif invoice.status == "canceled" %}
+                        <span class="badge bg-danger">Cancelada</span>
+                    {% elif invoice.status == "scheduled" %}
+                        <span class="badge bg-info text-dark">Agendada</span>
+                    {% elif invoice.status == "failed" %}
+                        <span class="badge bg-danger">Falhou</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ invoice.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if invoice.amount_brl is not None %}
+                        R$ {{ invoice.amount_brl|floatformat:2 }}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ invoice.payment_method|default:"—" }}</td>
+                <td><small>{{ invoice.created_at|default:"—" }}</small></td>
+                <td><small>{{ invoice.due_at|default:"—" }}</small></td>
+                <td>
+                    <a href="{% url 'invoice_detail' invoice.id %}"
+                       class="btn btn-outline-primary btn-sm">Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">Nenhuma fatura encontrada para esta assinatura.</div>
+{% endif %}
+
+{% endblock %}

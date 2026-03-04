@@ -1,0 +1,138 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Detalhe do Plano{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Detalhe do Plano</h1>
+        {% if plan %}<small class="text-muted"><code>{{ plan.id }}</code></small>{% endif %}
+    </div>
+    <a href="{% url 'plan_list' %}" class="btn btn-outline-secondary btn-sm">&larr; Voltar</a>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+{% if plan %}
+<div class="row g-4">
+
+    <div class="col-lg-7">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold">Informações Gerais</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">ID</dt>
+                    <dd class="col-sm-8"><code>{{ plan.id }}</code></dd>
+
+                    <dt class="col-sm-4">Nome</dt>
+                    <dd class="col-sm-8">{{ plan.name }}</dd>
+
+                    <dt class="col-sm-4">Descrição</dt>
+                    <dd class="col-sm-8">{{ plan.description|default:"—" }}</dd>
+
+                    <dt class="col-sm-4">Intervalo</dt>
+                    <dd class="col-sm-8">
+                        {{ plan.interval_count }}
+                        {% if plan.interval == "month" %}
+                            {% if plan.interval_count == 1 %}mês{% else %}meses{% endif %}
+                        {% elif plan.interval == "week" %}
+                            {% if plan.interval_count == 1 %}semana{% else %}semanas{% endif %}
+                        {% elif plan.interval == "year" %}
+                            {% if plan.interval_count == 1 %}ano{% else %}anos{% endif %}
+                        {% else %}
+                            {{ plan.interval }}
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Tipo de Cobrança</dt>
+                    <dd class="col-sm-8">{{ plan.billing_type }}</dd>
+
+                    <dt class="col-sm-4">Meios de Pagamento</dt>
+                    <dd class="col-sm-8">
+                        {% for pm in plan.payment_methods %}
+                            <span class="badge bg-secondary me-1">{{ pm }}</span>
+                        {% empty %}—{% endfor %}
+                    </dd>
+
+                    <dt class="col-sm-4">Parcelas</dt>
+                    <dd class="col-sm-8">
+                        {% for i in plan.installments %}
+                            <span class="badge bg-secondary me-1">{{ i }}x</span>
+                        {% empty %}—{% endfor %}
+                    </dd>
+
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        {% if plan.status == "active" %}
+                            <span class="badge bg-success">Ativo</span>
+                        {% elif plan.status == "deleted" %}
+                            <span class="badge bg-danger">Excluído</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ plan.status }}</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Criado em</dt>
+                    <dd class="col-sm-8">{{ plan.created_at|default:"—" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold">Itens</div>
+            <div class="card-body p-0">
+                {% if plan.items %}
+                <ul class="list-group list-group-flush">
+                    {% for item in plan.items %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="fw-semibold">{{ item.name }}</div>
+                                <small class="text-muted">Qtd: {{ item.quantity }}</small>
+                            </div>
+                            {% if item.pricing_scheme %}
+                            <span class="badge bg-primary">
+                                R$ {{ item.pricing_scheme.price }} centavos
+                            </span>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted p-3 mb-0">Nenhum item.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if plan.status != "deleted" %}
+    <div class="col-12">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header text-danger fw-bold">Zona de Perigo</div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    A exclusão do plano é irreversível. Assinaturas existentes
+                    <strong>não são afetadas automaticamente</strong>.
+                </p>
+                <form method="post" action="{% url 'plan_delete' plan.id %}"
+                      onsubmit="return confirm('Tem certeza que deseja excluir o plano &quot;{{ plan.name }}&quot;?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Excluir Plano</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% elif not error %}
+<div class="alert alert-warning">Plano não encontrado.</div>
+{% endif %}
+
+{% endblock %}

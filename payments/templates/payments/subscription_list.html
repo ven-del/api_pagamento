@@ -1,0 +1,97 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Assinaturas{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Assinaturas</h1>
+        <small class="text-muted">Assinaturas de recorrência cadastradas no Pagar.me</small>
+    </div>
+    <div>
+        <a href="{% url 'subscription_create' %}" class="btn btn-primary btn-sm me-2">+ Nova Assinatura</a>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-sm">&larr; Dashboard</a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+{% if subscriptions %}
+<div class="table-responsive">
+    <table class="table table-hover bg-white shadow-sm rounded">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Plano</th>
+                <th>Cliente</th>
+                <th>Meio de Pagamento</th>
+                <th>Intervalo</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subscriptions %}
+            <tr>
+                <td><code class="small">{{ sub.id }}</code></td>
+                <td>
+                    {% if sub.plan %}
+                        <span class="badge bg-info text-dark">{{ sub.plan.name }}</span>
+                    {% else %}
+                        <span class="text-muted small">Avulsa</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if sub.customer %}
+                        {{ sub.customer.name }}<br>
+                        <small class="text-muted">{{ sub.customer.email }}</small>
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ sub.payment_method|default:"—" }}</td>
+                <td>
+                    {% if sub.interval %}
+                        {{ sub.interval_count }}
+                        {% if sub.interval == "month" %}
+                            {% if sub.interval_count == 1 %}mês{% else %}meses{% endif %}
+                        {% elif sub.interval == "week" %}
+                            {% if sub.interval_count == 1 %}semana{% else %}semanas{% endif %}
+                        {% elif sub.interval == "year" %}
+                            {% if sub.interval_count == 1 %}ano{% else %}anos{% endif %}
+                        {% else %}
+                            {{ sub.interval }}
+                        {% endif %}
+                    {% else %}—{% endif %}
+                </td>
+                <td>
+                    {% if sub.status == "active" %}
+                        <span class="badge bg-success">Ativa</span>
+                    {% elif sub.status == "canceled" %}
+                        <span class="badge bg-danger">Cancelada</span>
+                    {% elif sub.status == "future" %}
+                        <span class="badge bg-warning text-dark">Futura</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ sub.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'subscription_detail' sub.id %}"
+                       class="btn btn-outline-primary btn-sm">Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <p class="mb-3">Nenhuma assinatura cadastrada ainda.</p>
+        <a href="{% url 'subscription_create' %}" class="btn btn-primary">Criar a primeira assinatura</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

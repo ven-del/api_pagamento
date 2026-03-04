@@ -1,0 +1,81 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Planos{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Planos</h1>
+        <small class="text-muted">Planos de recorrência cadastrados no Pagar.me</small>
+    </div>
+    <div>
+        <a href="{% url 'plan_create' %}" class="btn btn-primary btn-sm me-2">+ Novo Plano</a>
+        <a href="{% url 'index' %}" class="btn btn-outline-secondary btn-sm">&larr; Dashboard</a>
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+{% if plans %}
+<div class="table-responsive">
+    <table class="table table-hover bg-white shadow-sm rounded">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Intervalo</th>
+                <th>Cobrança</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in plans %}
+            <tr>
+                <td><code class="small">{{ plan.id }}</code></td>
+                <td>{{ plan.name }}</td>
+                <td class="text-muted small">{{ plan.description|default:"—" }}</td>
+                <td>
+                    {{ plan.interval_count }}
+                    {% if plan.interval == "month" %}
+                        {% if plan.interval_count == 1 %}mês{% else %}meses{% endif %}
+                    {% elif plan.interval == "week" %}
+                        {% if plan.interval_count == 1 %}semana{% else %}semanas{% endif %}
+                    {% elif plan.interval == "year" %}
+                        {% if plan.interval_count == 1 %}ano{% else %}anos{% endif %}
+                    {% else %}
+                        {{ plan.interval }}
+                    {% endif %}
+                </td>
+                <td>{{ plan.billing_type }}</td>
+                <td>
+                    {% if plan.status == "active" %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% elif plan.status == "deleted" %}
+                        <span class="badge bg-danger">Excluído</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ plan.status }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'plan_detail' plan.id %}" class="btn btn-outline-primary btn-sm">Ver</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card shadow-sm">
+    <div class="card-body text-center text-muted py-5">
+        <p class="mb-3">Nenhum plano cadastrado ainda.</p>
+        <a href="{% url 'plan_create' %}" class="btn btn-primary">Criar o primeiro plano</a>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Criar Plano{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Criar Plano</h1>
+        <small class="text-muted">Cadastra um novo plano de recorrência no Pagar.me</small>
+    </div>
+    <a href="{% url 'plan_list' %}" class="btn btn-outline-secondary btn-sm">&larr; Voltar</a>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+<div class="card shadow-sm">
+    <div class="card-body p-4">
+        <form method="post">
+            {% csrf_token %}
+
+            <h5 class="mb-3">Dados do Plano</h5>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nome do Plano</label>
+                    <input type="text" name="name" class="form-control" value="Plano Básico" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Descrição</label>
+                    <input type="text" name="description" class="form-control" value="Plano mensal básico" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Intervalo</label>
+                    <select name="interval" class="form-select">
+                        <option value="month" selected>Mensal</option>
+                        <option value="week">Semanal</option>
+                        <option value="year">Anual</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Contagem de Intervalos</label>
+                    <input type="number" name="interval_count" class="form-control" value="1" min="1" required />
+                    <div class="form-text">Ex.: 1 = a cada 1 mês; 3 = a cada 3 meses.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Tipo de Cobrança</label>
+                    <select name="billing_type" class="form-select">
+                        <option value="prepaid" selected>Pré-pago (prepaid)</option>
+                        <option value="postpaid">Pós-pago (postpaid)</option>
+                        <option value="exact_day">Dia exato (exact_day)</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr />
+            <h5 class="mb-3">Item do Plano</h5>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Nome do Item</label>
+                    <input type="text" name="item_name" class="form-control" value="Assinatura Mensal" required />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Preço (R$)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">R$</span>
+                        <input type="text" name="price" class="form-control" value="29.90" required />
+                    </div>
+                    <div class="form-text">Valor em reais (ex.: 29.90). Convertido para centavos.</div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Criar Plano</button>
+                <a href="{% url 'plan_list' %}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

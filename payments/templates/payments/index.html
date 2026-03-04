@@ -1,0 +1,139 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-end mb-5">
+    <div>
+        <h1 class="mb-1 fw-bold">Dashboard de Testes</h1>
+        <p class="text-muted mb-0">Explore cada funcionalidade da API V5 do Pagar.me em sandbox.</p>
+    </div>
+    <span class="badge bg-warning text-dark fs-6 px-3 py-2">AMBIENTE TESTE</span>
+</div>
+
+<!-- Pagamentos Avulsos -->
+<h5 class="text-uppercase text-muted fw-semibold mb-3 small">Pagamentos Avulsos</h5>
+<div class="row g-4 mb-5">
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Checkout (Link de Pagamento)</h5>
+                <p class="text-muted small mb-3">
+                    Gera um link hospedado no Pagar.me que aceita cartão, PIX e boleto.
+                    O cliente é redirecionado para a página de pagamento.
+                </p>
+                <a href="{% url 'checkout_create' %}" class="btn btn-primary btn-sm">
+                    Criar Link de Checkout &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">PIX</h5>
+                <p class="text-muted small mb-3">
+                    Cria um pedido com pagamento PIX e exibe o QR code e código copia-e-cola.
+                    No simulador, valores <strong>&le; R$ 500,00</strong> resultam em sucesso.
+                </p>
+                <a href="{% url 'pix_create' %}" class="btn btn-success btn-sm">
+                    Criar Pedido PIX &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Recorrência -->
+<h5 class="text-uppercase text-muted fw-semibold mb-3 small">Recorrência</h5>
+<div class="row g-4 mb-5">
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Planos</h5>
+                <p class="text-muted small mb-3">
+                    Crie e gerencie modelos de cobrança recorrente com intervalo e valor configuráveis.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'plan_list' %}" class="btn btn-outline-primary btn-sm">Listar</a>
+                    <a href="{% url 'plan_create' %}" class="btn btn-primary btn-sm">+ Novo Plano</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Assinaturas</h5>
+                <p class="text-muted small mb-3">
+                    Crie assinaturas vinculadas a planos ou avulsas. Gerencie cancelamento e histórico.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'subscription_list' %}" class="btn btn-outline-primary btn-sm">Listar</a>
+                    <a href="{% url 'subscription_create' %}" class="btn btn-primary btn-sm">+ Nova</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Faturas</h5>
+                <p class="text-muted small mb-3">
+                    Faturas são geradas automaticamente por assinaturas.
+                    Acesse-as pelo detalhe de cada assinatura.
+                </p>
+                <a href="{% url 'subscription_list' %}" class="btn btn-outline-secondary btn-sm">
+                    Via Assinaturas &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Infraestrutura -->
+<h5 class="text-uppercase text-muted fw-semibold mb-3 small">Infraestrutura</h5>
+<div class="row g-4 mb-5">
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Webhooks</h5>
+                <p class="text-muted small mb-3">
+                    Visualize os eventos recebidos em <code>/webhooks/pagarme/</code>.
+                    Configure o endpoint na Dashboard do Pagar.me (necessário ngrok ou similar).
+                </p>
+                <a href="{% url 'webhook_log' %}" class="btn btn-outline-secondary btn-sm">
+                    Ver Log de Eventos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-1">Referência do Simulador</h5>
+                <p class="text-muted small mb-2"><strong>Cartão de Crédito:</strong></p>
+                <ul class="list-unstyled small mb-3">
+                    <li><code>4000000000000010</code> <span class="badge bg-success ms-1">Sucesso</span></li>
+                    <li><code>4000000000000028</code> <span class="badge bg-danger ms-1">Falha</span></li>
+                </ul>
+                <p class="text-muted small mb-2"><strong>PIX:</strong></p>
+                <ul class="list-unstyled small mb-0">
+                    <li>Valor <strong>&le; R$ 500,00</strong> <span class="badge bg-success ms-1">Sucesso</span></li>
+                    <li>Valor <strong>&gt; R$ 500,00</strong> <span class="badge bg-danger ms-1">Falha</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

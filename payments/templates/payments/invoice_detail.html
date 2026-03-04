@@ -1,0 +1,189 @@
+{% extends 'payments/base.html' %}
+
+{% block title %}Detalhe da Fatura{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="mb-0">Detalhe da Fatura</h1>
+        {% if invoice %}<small class="text-muted"><code>{{ invoice.id }}</code></small>{% endif %}
+    </div>
+    <div>
+        {% if invoice and invoice.subscription_id %}
+        <a href="{% url 'invoice_list' invoice.subscription_id %}"
+           class="btn btn-outline-secondary btn-sm me-2">&larr; Faturas</a>
+        <a href="{% url 'subscription_detail' invoice.subscription_id %}"
+           class="btn btn-outline-secondary btn-sm">&larr; Assinatura</a>
+        {% else %}
+        <a href="{% url 'subscription_list' %}" class="btn btn-outline-secondary btn-sm">&larr; Assinaturas</a>
+        {% endif %}
+    </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger"><strong>Erro:</strong> {{ error }}</div>
+{% endif %}
+
+{% if invoice %}
+<div class="row g-4">
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold">Informações Gerais</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">ID</dt>
+                    <dd class="col-sm-7"><code>{{ invoice.id }}</code></dd>
+
+                    <dt class="col-sm-5">Status</dt>
+                    <dd class="col-sm-7">
+                        {% if invoice.status == "paid" %}
+                            <span class="badge bg-success">Paga</span>
+                        {% elif invoice.status == "pending" %}
+                            <span class="badge bg-warning text-dark">Pendente</span>
+                        {% elif invoice.status == "canceled" %}
+                            <span class="badge bg-danger">Cancelada</span>
+                        {% elif invoice.status == "scheduled" %}
+                            <span class="badge bg-info text-dark">Agendada</span>
+                        {% elif invoice.status == "failed" %}
+                            <span class="badge bg-danger">Falhou</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ invoice.status }}</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Valor</dt>
+                    <dd class="col-sm-7">
+                        {% if invoice.amount_brl is not None %}
+                            <strong>R$ {{ invoice.amount_brl|floatformat:2 }}</strong>
+                        {% else %}—{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Meio de Pagamento</dt>
+                    <dd class="col-sm-7">{{ invoice.payment_method|default:"—" }}</dd>
+
+                    <dt class="col-sm-5">Assinatura</dt>
+                    <dd class="col-sm-7">
+                        {% if invoice.subscription_id %}
+                            <a href="{% url 'subscription_detail' invoice.subscription_id %}">
+                                <code class="small">{{ invoice.subscription_id }}</code>
+                            </a>
+                        {% else %}—{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-5">Criada em</dt>
+                    <dd class="col-sm-7">{{ invoice.created_at|default:"—" }}</dd>
+
+                    <dt class="col-sm-5">Atualizada em</dt>
+                    <dd class="col-sm-7">{{ invoice.updated_at|default:"—" }}</dd>
+
+                    <dt class="col-sm-5">Vence em</dt>
+                    <dd class="col-sm-7">{{ invoice.due_at|default:"—" }}</dd>
+
+                    <dt class="col-sm-5">Paga em</dt>
+                    <dd class="col-sm-7">{{ invoice.paid_at|default:"—" }}</dd>
+
+                    <dt class="col-sm-5">Cancelada em</dt>
+                    <dd class="col-sm-7">{{ invoice.canceled_at|default:"—" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-bold">Itens</div>
+            <div class="card-body p-0">
+                {% if invoice.items %}
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Qtd</th>
+                            <th>Preço</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in invoice.items %}
+                        <tr>
+                            <td>{{ item.description|default:item.name|default:"—" }}</td>
+                            <td>{{ item.quantity|default:1 }}</td>
+                            <td>
+                                {% if item.pricing_scheme and item.pricing_scheme.price %}
+                                    {{ item.pricing_scheme.price }} centavos
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted small p-3 mb-0">Sem itens detalhados.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if invoice.charges %}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold">Cobranças</div>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID da Cobrança</th>
+                            <th>Status</th>
+                            <th>Valor</th>
+                            <th>Criada em</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for charge in invoice.charges %}
+                        <tr>
+                            <td><code class="small">{{ charge.id }}</code></td>
+                            <td>
+                                {% if charge.status == "paid" %}
+                                    <span class="badge bg-success">Paga</span>
+                                {% elif charge.status == "pending" %}
+                                    <span class="badge bg-warning text-dark">Pendente</span>
+                                {% elif charge.status == "failed" %}
+                                    <span class="badge bg-danger">Falhou</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ charge.status }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if charge.amount %}{{ charge.amount }} centavos{% else %}—{% endif %}
+                            </td>
+                            <td><small>{{ charge.created_at|default:"—" }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if invoice.status == "pending" or invoice.status == "scheduled" %}
+    <div class="col-12">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header fw-bold text-danger">Zona de Perigo</div>
+            <div class="card-body">
+                <p class="mb-3 text-muted small">Cancelar esta fatura é uma ação irreversível.</p>
+                <form method="post" action="{% url 'invoice_cancel' invoice.id %}"
+                      onsubmit="return confirm('Confirma o cancelamento da fatura {{ invoice.id }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Cancelar Fatura</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endif %}
+
+{% endblock %}
