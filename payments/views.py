@@ -95,9 +95,30 @@ def pix_create(request):
                 customer_document=customer_document,
                 expires_in=expires_in,
             )
+            result["amount_cents_debug"] = amount_cents
+            result["amount_brl_debug"] = amount_brl
             return render(request, "payments/pix.html", {"result": result})
         except ValueError as exc:
-            return render(request, "payments/pix.html", {"error": str(exc)})
+            error_str = str(exc)
+            error_details = None
+            # Tenta extrair JSON da resposta da API
+            try:
+                if "[" in error_str and "]" in error_str:
+                    # Tenta encontrar JSON dentro da mensagem de erro
+                    start = error_str.find("{")
+                    if start != -1:
+                        end = error_str.rfind("}") + 1
+                        json_str = error_str[start:end]
+                        error_details = json.dumps(json.loads(json_str), indent=2)
+            except (json.JSONDecodeError, ValueError):
+                pass
+            
+            return render(request, "payments/pix.html", {
+                "error": error_str,
+                "error_details": error_details,
+                "debug_amount_cents": amount_cents,
+                "debug_amount_brl": amount_brl,
+            })
 
     return render(request, "payments/pix.html")
 

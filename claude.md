@@ -61,8 +61,8 @@ https://api.pagar.me/core/v5
 **PIX (Gateway):**
 | Valor | Cenário |
 |---|---|
-| ≤ R$ 500,00 | Sucesso (status pending → paid automaticamente) |
-| > R$ 500,00 | Falha (status failed) |
+| < R$ 500,00 | Sucesso (status pending → paid automaticamente) |
+| ≥ R$ 500,00 | Falha (status failed) |
 
 > **Obs:** Simulador PIX não funciona com Split.
 

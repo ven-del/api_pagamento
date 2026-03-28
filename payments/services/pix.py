@@ -3,7 +3,11 @@ Serviço de pagamento via PIX do Pagar.me.
 
 Endpoint: POST /orders
 """
+import json
+import logging
 from .base import PagarmeClient
+
+logger = logging.getLogger(__name__)
 
 
 def create_pix_order(
@@ -17,8 +21,8 @@ def create_pix_order(
     Cria um pedido com pagamento via PIX.
 
     Regras do simulador:
-    - Valor <= 50000 centavos (R$ 500,00) → sucesso (pending → paid automático)
-    - Valor >  50000 centavos             → falha
+    - Valor < 50000 centavos (R$ 500,00) → sucesso (pending → paid automático)
+    - Valor >= 50000 centavos            → falha
 
     Returns:
         Dicionário enriquecido com ``qr_code`` e ``qr_code_url``.
@@ -55,7 +59,15 @@ def create_pix_order(
         ],
     }
 
-    data = client.post("/orders", payload)
+    logger.info(f"[PIX] Enviando payload: {json.dumps(payload, indent=2)}")
+
+    try:
+        data = client.post("/orders", payload)
+        logger.info(
+            f"[PIX] Sucesso na requisição. Resposta: {json.dumps(data, indent=2)}")
+    except ValueError as e:
+        logger.error(f"[PIX] Erro ao criar pedido: {str(e)}")
+        raise
 
     # Extrai QR code da resposta para facilitar exibição no template
     try:
