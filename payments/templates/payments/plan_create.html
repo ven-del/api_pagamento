@@ -24,13 +24,9 @@
             <h5 class="mb-3">Dados do Plano</h5>
 
             <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Nome do Plano</label>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nome</label>
                     <input type="text" name="name" class="form-control" value="Plano Básico" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Descrição</label>
-                    <input type="text" name="description" class="form-control" value="Plano mensal básico" />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Intervalo</label>
@@ -46,31 +42,27 @@
                     <div class="form-text">Ex.: 1 = a cada 1 mês; 3 = a cada 3 meses.</div>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold">Tipo de Cobrança</label>
-                    <select name="billing_type" class="form-select">
-                        <option value="prepaid" selected>Pré-pago (prepaid)</option>
-                        <option value="postpaid">Pós-pago (postpaid)</option>
-                        <option value="exact_day">Dia exato (exact_day)</option>
-                    </select>
-                </div>
-            </div>
-
-            <hr />
-            <h5 class="mb-3">Item do Plano</h5>
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Nome do Item</label>
-                    <input type="text" name="item_name" class="form-control" value="Assinatura Mensal" required />
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Preço (R$)</label>
+                    <label class="form-label fw-semibold">pricing_scheme.price (R$)</label>
                     <div class="input-group">
                         <span class="input-group-text">R$</span>
                         <input type="text" name="price" class="form-control" value="29.90" required />
                     </div>
-                    <div class="form-text">Valor em reais (ex.: 29.90). Convertido para centavos.</div>
                 </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">pricing_scheme.scheme_type</label>
+                    <select name="scheme_type" class="form-select">
+                        <option value="Unit" selected>Unit</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">quantity</label>
+                    <input type="number" name="quantity" class="form-control" min="1" value="1" required />
+                    <div class="form-text">Obrigatório para este ambiente da API.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info small mb-4">
+                Payload enviado: <code>{"name", "interval", "interval_count", "pricing_scheme": {"scheme_type", "price"}, "quantity"}</code>
             </div>
 
             <div class="d-flex gap-2">

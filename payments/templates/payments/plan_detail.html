@@ -28,7 +28,7 @@
                     <dd class="col-sm-8"><code>{{ plan.id }}</code></dd>
 
                     <dt class="col-sm-4">Nome</dt>
-                    <dd class="col-sm-8">{{ plan.name }}</dd>
+                    <dd class="col-sm-8">{{ plan.name|default:"—" }}</dd>
 
                     <dt class="col-sm-4">Descrição</dt>
                     <dd class="col-sm-8">{{ plan.description|default:"—" }}</dd>
@@ -48,7 +48,13 @@
                     </dd>
 
                     <dt class="col-sm-4">Tipo de Cobrança</dt>
-                    <dd class="col-sm-8">{{ plan.billing_type }}</dd>
+                    <dd class="col-sm-8">{{ plan.billing_type|default:"—" }}</dd>
+
+                    <dt class="col-sm-4">Scheme Type</dt>
+                    <dd class="col-sm-8">{{ plan.pricing_scheme.scheme_type|default:"—" }}</dd>
+
+                    <dt class="col-sm-4">Quantity</dt>
+                    <dd class="col-sm-8">{{ plan.quantity|default:"null" }}</dd>
 
                     <dt class="col-sm-4">Meios de Pagamento</dt>
                     <dd class="col-sm-8">

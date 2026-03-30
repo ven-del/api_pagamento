@@ -39,18 +39,33 @@
     <div class="card shadow-sm mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span class="fw-semibold">Pedido criado</span>
-            {% if result.status == "pending" %}
-                <span class="badge bg-warning text-dark">{{ result.status }}</span>
-            {% elif result.status == "paid" %}
-                <span class="badge bg-success">{{ result.status }}</span>
-            {% elif result.status == "failed" %}
-                <span class="badge bg-danger">{{ result.status }}</span>
+            {% if result.operation_success %}
+                <span class="badge bg-success">sucesso</span>
             {% else %}
-                <span class="badge bg-secondary">{{ result.status }}</span>
+                {% if result.status == "pending" or result.status == "waiting_payment" %}
+                    <span class="badge bg-warning text-dark">{{ result.status }}</span>
+                {% elif result.status == "paid" %}
+                    <span class="badge bg-success">{{ result.status }}</span>
+                {% elif result.status == "failed" or result.status == "with_error" %}
+                    <span class="badge bg-danger">{{ result.status }}</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ result.status }}</span>
+                {% endif %}
             {% endif %}
         </div>
         <div class="card-body">
             <p class="mb-1"><strong>ID do Pedido:</strong> <code>{{ result.id }}</code></p>
+            <p class="mb-2"><strong>Status retornado pela API:</strong> <code>{{ result.status }}</code></p>
+
+            {% if result.operation_success %}
+            <div class="alert alert-success mt-3" role="alert">
+                {% if result.qr_code or result.qr_code_url %}
+                    Operação bem sucedida. O QR Code PIX foi gerado abaixo.
+                {% else %}
+                    Não foi enviado código QR, mas a operação foi bem sucedida.
+                {% endif %}
+            </div>
+            {% endif %}
 
             {% if result.amount_cents_debug %}
             <div class="alert alert-info mb-3" role="alert">
@@ -67,26 +82,37 @@
             </div>
             {% endif %}
 
-            {% if result.qr_code_url %}
-            <div class="text-center my-3">
-                <img src="{{ result.qr_code_url }}" alt="QR Code PIX"
-                     class="img-fluid border rounded" style="max-width: 240px;" />
-            </div>
-            {% endif %}
-
-            {% if result.qr_code %}
-            <div class="mb-2">
-                <label class="form-label fw-semibold">Código Copia e Cola</label>
-                <div class="input-group">
-                    <input type="text" class="form-control font-monospace small"
-                           id="qrCodeText" value="{{ result.qr_code }}" readonly />
-                    <button class="btn btn-outline-secondary" type="button"
-                            onclick="copyQrCode()" id="copyBtn">Copiar</button>
+            {% if result.qr_code or result.qr_code_url %}
+            <div class="border rounded-3 p-3 mb-3 bg-light">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>QR Code PIX</strong>
+                    {% if result.qr_code_url %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Disponível</span>
+                    {% endif %}
                 </div>
+
+                {% if result.qr_code_url %}
+                <div class="text-center my-3">
+                    <img src="{{ result.qr_code_url }}" alt="QR Code PIX"
+                         class="img-fluid border rounded bg-white p-2" style="max-width: 240px;" />
+                </div>
+                {% endif %}
+
+                {% if result.qr_code %}
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">Código copia e cola</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control font-monospace small"
+                               id="qrCodeText" value="{{ result.qr_code }}" readonly />
+                        <button class="btn btn-outline-secondary" type="button"
+                                onclick="copyQrCode()" id="copyBtn">Copiar</button>
+                    </div>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 
-            {% if not result.qr_code and not result.qr_code_url %}
+            {% if not result.qr_code and not result.qr_code_url and not result.operation_success %}
             <div class="alert alert-warning mt-3 mb-0">
                 QR Code não disponível — verifique o status do pedido ou tente um valor &lt; R$ 500,00.
             </div>

@@ -12,39 +12,24 @@ from .base import PagarmeClient
 
 
 def create_plan(
-    name: str,
-    description: str = "",
+    name: str = "Plano Básico",
     interval: str = "month",
     interval_count: int = 1,
-    billing_type: str = "prepaid",
-    items: list | None = None,
-    payment_methods: list[str] | None = None,
-    installments: list[int] | None = None,
+    scheme_type: str = "Unit",
+    price: int = 2990,
+    quantity: int = 1,
 ) -> dict:
-    """Cria um plano de recorrência."""
-    if payment_methods is None:
-        payment_methods = ["credit_card"]
-    if installments is None:
-        installments = [1]
-    if items is None:
-        items = [
-            {
-                "name": name,
-                "quantity": 1,
-                "pricing_scheme": {"price": 2990},
-            }
-        ]
-
+    """Cria um plano de recorrência com os campos exigidos pela API."""
     client = PagarmeClient()
     payload = {
         "name": name,
-        "description": description,
         "interval": interval,
         "interval_count": interval_count,
-        "billing_type": billing_type,
-        "payment_methods": payment_methods,
-        "installments": installments,
-        "items": items,
+        "pricing_scheme": {
+            "scheme_type": scheme_type,
+            "price": price,
+        },
+        "quantity": quantity,
     }
     return client.post("/plans", payload)
 

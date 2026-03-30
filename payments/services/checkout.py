@@ -1,7 +1,7 @@
 """
 Serviço de Checkout (Link de Pagamento) do Pagar.me.
 
-Endpoint: POST /checkout/links
+Endpoint: POST /paymentlinks
 """
 from .base import PagarmeClient
 
@@ -25,29 +25,37 @@ def create_checkout_link(
         Dicionário com a resposta da API (inclui ``payment_url``).
     """
     if payment_methods is None:
-        payment_methods = ["credit_card", "pix", "boleto"]
+        payment_methods = ["credit_card"]
+
+    payment_methods = [method for method in payment_methods if method == "credit_card"]
+    if not payment_methods:
+        payment_methods = ["credit_card"]
 
     client = PagarmeClient()
     payload = {
+        "is_building": False,
         "name": name,
         "type": "order",
         "payment_settings": {
             "accepted_payment_methods": payment_methods,
-            "credit_card": {
-                "installments": [{"number": 1, "total": amount}],
+            "credit_card_settings": {
+                "installments_setup": {
+                    "amount": amount,
+                    "interest_rate": 0,
+                    "max_installments": 1,
+                    "interest_type": "simple",
+                },
+                "operation_type": "auth_and_capture",
             },
         },
         "cart_settings": {
             "items": [
                 {
                     "amount": amount,
-                    "description": description,
-                    "quantity": 1,
+                    "name": description,
+                    "default_quantity": 1,
                 }
             ]
         },
-        "customer_settings": {
-            "customer_editable": True,
-        },
     }
-    return client.post("/checkout/links", payload)
+    return client.post("/paymentlinks", payload)

@@ -37,7 +37,7 @@
             {% for plan in plans %}
             <tr>
                 <td><code class="small">{{ plan.id }}</code></td>
-                <td>{{ plan.name }}</td>
+                <td>{{ plan.name|default:"—" }}</td>
                 <td class="text-muted small">{{ plan.description|default:"—" }}</td>
                 <td>
                     {{ plan.interval_count }}
@@ -51,7 +51,7 @@
                         {{ plan.interval }}
                     {% endif %}
                 </td>
-                <td>{{ plan.billing_type }}</td>
+                <td>{{ plan.billing_type|default:"—" }}</td>
                 <td>
                     {% if plan.status == "active" %}
                         <span class="badge bg-success">Ativo</span>

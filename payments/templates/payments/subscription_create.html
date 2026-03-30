@@ -24,11 +24,11 @@
             <h5 class="mb-3">Tipo de Assinatura</h5>
             <div class="mb-4">
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="mode" id="mode-plan" value="plan" checked />
+                    <input class="form-check-input" type="radio" name="mode" id="mode-plan" value="plan" {% if plans %}checked{% else %}disabled{% endif %} />
                     <label class="form-check-label" for="mode-plan">Vinculada a Plano</label>
                 </div>
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="mode" id="mode-standalone" value="standalone" />
+                    <input class="form-check-input" type="radio" name="mode" id="mode-standalone" value="standalone" {% if not plans %}checked{% endif %} />
                     <label class="form-check-label" for="mode-standalone">Avulsa (sem plano)</label>
                 </div>
             </div>
@@ -57,19 +57,19 @@
             </div>
 
             <!-- Assinatura avulsa -->
-            <div id="section-standalone" style="display:none;">
+            <div id="section-standalone" {% if plans %}style="display:none;"{% endif %}>
                 <hr />
                 <h5 class="mb-3">Dados da Assinatura Avulsa</h5>
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Descrição do Item</label>
-                        <input type="text" name="item_description" class="form-control" value="Assinatura mensal" />
+                        <input type="text" name="item_description" class="form-control" value="Musculação" />
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold">Preço (R$)</label>
                         <div class="input-group">
                             <span class="input-group-text">R$</span>
-                            <input type="text" name="price" class="form-control" value="29.90" />
+                            <input type="text" name="price" class="form-control" value="189.90" />
                         </div>
                     </div>
                     <div class="col-md-3">
@@ -82,7 +82,7 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Contagem de Intervalos</label>
-                        <input type="number" name="interval_count" class="form-control" value="1" min="1" />
+                        <input type="number" name="interval_count" class="form-control" value="3" min="1" />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Tipo de Cobrança</label>
@@ -91,6 +91,92 @@
                             <option value="postpaid">Pós-pago (postpaid)</option>
                             <option value="exact_day">Dia exato (exact_day)</option>
                         </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Parcelas</label>
+                        <input type="number" name="installments" class="form-control" value="3" min="1" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Preço Mínimo (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="text" name="minimum_price" class="form-control" value="100.00" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Dias para vencimento do boleto</label>
+                        <input type="number" name="boleto_due_days" class="form-control" value="5" min="1" />
+                    </div>
+                </div>
+
+                <h6 class="mb-3">Item de Taxa/Adesão (segundo item)</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Descrição do item 2</label>
+                        <input type="text" name="setup_item_description" class="form-control" value="Matrícula" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Preço item 2 (R$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="text" name="setup_price" class="form-control" value="59.90" />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Qtd item 1</label>
+                        <input type="number" name="item_quantity" class="form-control" value="1" min="1" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Qtd item 2</label>
+                        <input type="number" name="setup_item_quantity" class="form-control" value="1" min="1" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Ciclos item 2</label>
+                        <input type="number" name="setup_item_cycles" class="form-control" value="1" min="1" />
+                    </div>
+                    <input type="hidden" name="item_scheme_type" value="Unit" />
+                    <input type="hidden" name="setup_item_scheme_type" value="Unit" />
+                </div>
+
+                <h6 class="mb-3">Desconto e Incremento</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Ciclos desconto</label>
+                        <input type="number" name="discount_cycles" class="form-control" value="3" min="1" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Valor desconto</label>
+                        <input type="number" name="discount_value" class="form-control" value="10" min="0" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Tipo desconto</label>
+                        <select name="discount_type" class="form-select">
+                            <option value="percentage" selected>percentage</option>
+                            <option value="flat">flat</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Ciclos incremento</label>
+                        <input type="number" name="increment_cycles" class="form-control" value="2" min="1" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Valor incremento</label>
+                        <input type="number" name="increment_value" class="form-control" value="20" min="0" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Tipo incremento</label>
+                        <select name="increment_type" class="form-select">
+                            <option value="percentage" selected>percentage</option>
+                            <option value="flat">flat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h6 class="mb-3">Metadata</h6>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">metadata.id</label>
+                        <input type="text" name="metadata_id" class="form-control" value="my_subscription_id" />
                     </div>
                 </div>
             </div>
@@ -101,12 +187,12 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Nome</label>
-                    <input type="text" name="customer_name" class="form-control" value="Usuário Teste" required />
+                    <input type="text" name="customer_name" class="form-control" value="Vendel" required />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">E-mail</label>
                     <input type="email" name="customer_email" class="form-control"
-                           value="usuarioteste@labce.com.br" required />
+                           value="vendel@labce.com.br" required />
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">CPF</label>
@@ -131,22 +217,50 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Nome no Cartão</label>
-                    <input type="text" name="card_holder" class="form-control" value="Usuário Teste" required />
+                    <input type="text" name="card_holder" class="form-control" value="Vendel" required />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Mês de Vencimento</label>
                     <input type="number" name="card_exp_month" class="form-control"
-                           value="12" min="1" max="12" required />
+                           value="1" min="1" max="12" required />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">Ano de Vencimento</label>
                     <input type="number" name="card_exp_year" class="form-control"
-                           value="2030" min="2024" required />
+                           value="30" min="1" required />
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold">CVV</label>
                     <input type="text" name="card_cvv" class="form-control"
-                           value="123" maxlength="4" required />
+                           value="903" maxlength="4" required />
+                </div>
+            </div>
+
+            <h6 class="mb-3">Endereço de Cobrança do Cartão</h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Linha 1</label>
+                    <input type="text" name="billing_line_1" class="form-control" value="4, Privet Drive" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Linha 2</label>
+                    <input type="text" name="billing_line_2" class="form-control" value="Bedroom under the stairs" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">CEP</label>
+                    <input type="text" name="billing_zip_code" class="form-control" value="20021130" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Cidade</label>
+                    <input type="text" name="billing_city" class="form-control" value="Little Whinging" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Estado</label>
+                    <input type="text" name="billing_state" class="form-control" value="Surrey" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">País</label>
+                    <input type="text" name="billing_country" class="form-control" value="UK" />
                 </div>
             </div>
 
@@ -167,7 +281,12 @@
     const secStandalone = document.getElementById('section-standalone');
 
     function toggleMode() {
-        const val = document.querySelector('input[name="mode"]:checked').value;
+        const selected = document.querySelector('input[name="mode"]:checked');
+        if (!selected) {
+            return;
+        }
+
+        const val = selected.value;
         if (val === 'plan') {
             secPlan.style.display = '';
             secStandalone.style.display = 'none';
@@ -178,5 +297,6 @@
     }
 
     radios.forEach(r => r.addEventListener('change', toggleMode));
+    toggleMode();
 </script>
 {% endblock %}

@@ -10,6 +10,33 @@ from .base import PagarmeClient
 logger = logging.getLogger(__name__)
 
 
+def _extract_pix_qr_code(data: dict) -> tuple[str, str]:
+    """Extrai o QR Code e a URL do QR Code de diferentes formatos de resposta."""
+    candidates = []
+
+    charges = data.get("charges") if isinstance(data, dict) else None
+    if isinstance(charges, list) and charges:
+        first_charge = charges[0]
+        if isinstance(first_charge, dict):
+            last_transaction = first_charge.get("last_transaction")
+            if isinstance(last_transaction, dict):
+                candidates.append(last_transaction)
+
+    if isinstance(data, dict):
+        candidates.append(data)
+
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+
+        qr_code = candidate.get("qr_code")
+        qr_code_url = candidate.get("qr_code_url")
+        if qr_code or qr_code_url:
+            return qr_code or "", qr_code_url or ""
+
+    return "", ""
+
+
 def create_pix_order(
     amount: int,
     customer_name: str = "Usuário Teste",
@@ -70,12 +97,8 @@ def create_pix_order(
         raise
 
     # Extrai QR code da resposta para facilitar exibição no template
-    try:
-        last_tx = data["charges"][0]["last_transaction"]
-        data["qr_code"] = last_tx.get("qr_code", "")
-        data["qr_code_url"] = last_tx.get("qr_code_url", "")
-    except (KeyError, IndexError, TypeError):
-        data["qr_code"] = ""
-        data["qr_code_url"] = ""
+    qr_code, qr_code_url = _extract_pix_qr_code(data)
+    data["qr_code"] = qr_code
+    data["qr_code_url"] = qr_code_url
 
     return data

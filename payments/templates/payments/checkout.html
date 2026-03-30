@@ -9,22 +9,69 @@
     <h2 class="mt-3 mb-1">Checkout (Link de Pagamento)</h2>
     <p class="text-muted small mb-4">
         Preencha os dados abaixo para gerar um link de checkout hospedado no Pagar.me.
-        Você será redirecionado automaticamente para a página de pagamento.
+        Quando a resposta trouxer a URL, esta página exibirá a confirmação e abrirá o checkout em uma nova aba.
     </p>
 
     {% if error %}
     <div class="alert alert-danger" role="alert">
         <strong>Erro:</strong> {{ error }}
-        {% if raw %}
-        <hr />
-        <pre class="mb-0 small">{{ raw }}</pre>
-        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if result %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="mb-0">Link de pagamento criado</h5>
+                {% if result.operation_success %}
+                <span class="badge bg-success">sucesso</span>
+                {% else %}
+                <span class="badge bg-secondary">{{ result.status|default:"sem status" }}</span>
+                {% endif %}
+            </div>
+
+            <p class="mb-1"><strong>ID do link:</strong> <code>{{ result.id }}</code></p>
+            <p class="mb-1"><strong>Status retornado pela API:</strong> <code>{{ result.status|default:"não informado" }}</code></p>
+
+            {% if result.operation_success %}
+                {% if result.checkout_url %}
+                <div class="alert alert-success mt-3 mb-3" role="alert">
+                    Checkout gerado com sucesso. A aba do checkout será aberta e reutilizada nesta sessão.
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <a href="{{ result.checkout_url }}" target="pagarmeCheckoutTab" rel="noopener" class="btn btn-primary">
+                        Abrir checkout manualmente
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyCheckoutUrl()">
+                        Copiar URL do checkout
+                    </button>
+                </div>
+
+                <input type="text" id="checkoutUrlText" class="visually-hidden" value="{{ result.checkout_url }}" readonly />
+                {% else %}
+                <div class="alert alert-warning mt-3 mb-0" role="alert">
+                    Não foi enviada URL do checkout, mas a operação foi bem sucedida.
+                </div>
+                {% endif %}
+            {% endif %}
+
+            {% if result.amount_cents_debug %}
+            <div class="alert alert-info mt-3 mb-0" role="alert">
+                <small>
+                    <strong>Debug:</strong><br>
+                    Valor digitado (R$): <code>{{ result.amount_brl_debug }}</code><br>
+                    Valor efetivo (centavos): <code>{{ result.amount_cents_debug }}</code>
+                </small>
+            </div>
+            {% endif %}
+        </div>
     </div>
     {% endif %}
 
     <div class="card shadow-sm">
         <div class="card-body">
-            <form method="post">
+            <form method="post" id="checkoutForm">
                 {% csrf_token %}
 
                 <div class="mb-3">
@@ -60,4 +107,41 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const checkoutTabName = "pagarmeCheckoutTab";
+
+function prepareCheckoutTab() {
+    const input = document.getElementById("checkoutUrlText");
+    if (input && input.value) {
+        window.open("about:blank", checkoutTabName);
+    }
+}
+
+function openCheckoutTab() {
+    const input = document.getElementById("checkoutUrlText");
+    if (!input || !input.value) {
+        return;
+    }
+
+    window.open(input.value, checkoutTabName);
+}
+
+function copyCheckoutUrl() {
+    const input = document.getElementById("checkoutUrlText");
+    if (!input) {
+        return;
+    }
+
+    navigator.clipboard.writeText(input.value);
+}
+
+document.getElementById("checkoutForm")?.addEventListener("submit", prepareCheckoutTab);
+
+document.addEventListener("DOMContentLoaded", () => {
+    openCheckoutTab();
+});
+</script>
 {% endblock %}

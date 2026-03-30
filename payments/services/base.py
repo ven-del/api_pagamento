@@ -25,6 +25,10 @@ class PagarmeClient:
                 "PAGARME_SECRET_KEY inválida. Use uma chave secreta iniciando com "
                 "sk_test_ ou sk_live_."
             )
+
+        # A API Core V5 usa a mesma base para teste e produção.
+        self.BASE_URL = "https://api.pagar.me/core/v5"
+
         # Basic Auth: base64(sk_test_...:)
         token = base64.b64encode(f"{secret_key}:".encode()).decode()
         self._headers = {
@@ -49,7 +53,16 @@ class PagarmeClient:
             full_response = json.dumps(data, indent=2) if isinstance(data, dict) else str(data)
             raise ValueError(f"[{response.status_code}] {message}\n\nResposta completa:\n{full_response}")
 
-        return data
+        if isinstance(data, dict):
+            data["_http_status_code"] = response.status_code
+            data["_http_ok"] = response.ok
+            return data
+
+        return {
+            "data": data,
+            "_http_status_code": response.status_code,
+            "_http_ok": response.ok,
+        }
 
     def get(self, path: str, params: dict | None = None) -> dict:
         resp = requests.get(

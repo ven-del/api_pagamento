@@ -33,7 +33,7 @@ def index(request):
 def checkout_create(request):
     """
     GET  → Exibe formulário para configurar o checkout.
-    POST → Cria o link de checkout no Pagar.me e redireciona para a URL.
+    POST → Cria o link de checkout no Pagar.me e exibe a página do checkout.
     """
     if request.method == "POST":
         amount_brl = request.POST.get("amount", "100.00")
@@ -51,13 +51,21 @@ def checkout_create(request):
                 name=name,
                 description=description,
             )
-            payment_url = data.get("payment_url") or data.get("url", "")
-            if payment_url:
-                return redirect(payment_url)
-            return render(request, "payments/checkout.html", {
-                "error": "Link criado, mas URL de pagamento não encontrada.",
-                "raw": data,
-            })
+            checkout_data = data.get("data", {}) if isinstance(data, dict) else {}
+            data["amount_cents_debug"] = amount_cents
+            data["amount_brl_debug"] = amount_brl
+            data["checkout_url"] = (
+                checkout_data.get("url")
+                or data.get("url")
+                or data.get("payment_url")
+                or data.get("checkout_url", "")
+            )
+            status_code = data.get("_http_status_code")
+            data["operation_success"] = bool(
+                data.get("_http_ok")
+                or status_code in {200, 201, 202}
+            )
+            return render(request, "payments/checkout.html", {"result": data})
         except ValueError as exc:
             return render(request, "payments/checkout.html", {"error": str(exc)})
 
@@ -97,6 +105,7 @@ def pix_create(request):
             )
             result["amount_cents_debug"] = amount_cents
             result["amount_brl_debug"] = amount_brl
+            result["operation_success"] = result.get("_http_status_code") == 200
             return render(request, "payments/pix.html", {"result": result})
         except ValueError as exc:
             error_str = str(exc)
@@ -146,34 +155,37 @@ def plan_create(request):
     """
     if request.method == "POST":
         name = request.POST.get("name", "Plano Básico")
-        description = request.POST.get("description", "Plano mensal básico")
         interval = request.POST.get("interval", "month")
         interval_count = int(request.POST.get("interval_count", 1))
-        billing_type = request.POST.get("billing_type", "prepaid")
-        item_name = request.POST.get("item_name", "Assinatura")
+        scheme_type = request.POST.get("scheme_type", "Unit")
         price_brl = request.POST.get("price", "29.90")
+        raw_quantity = request.POST.get("quantity", "1")
 
         try:
-            price_cents = int(float(price_brl.replace(",", ".")) * 100)
-        except (ValueError, AttributeError):
-            price_cents = 2990
+            price = int(float(price_brl.replace(",", ".")) * 100)
+        except (ValueError, TypeError, AttributeError):
+            price = 2990
 
-        items = [{
-            "name": item_name,
-            "quantity": 1,
-            "pricing_scheme": {"price": price_cents},
-        }]
+        try:
+            quantity = int(raw_quantity)
+            if quantity < 1:
+                quantity = 1
+        except (ValueError, TypeError):
+            quantity = 1
 
         try:
             plan = create_plan(
                 name=name,
-                description=description,
                 interval=interval,
                 interval_count=interval_count,
-                items=items,
-                billing_type=billing_type,
+                scheme_type=scheme_type,
+                price=price,
+                quantity=quantity,
             )
-            return redirect("plan_detail", plan_id=plan["id"])
+            plan_id = plan.get("id") if isinstance(plan, dict) else None
+            if plan_id:
+                return redirect("plan_detail", plan_id=plan_id)
+            return redirect("plan_list")
         except ValueError as exc:
             return render(request, "payments/plan_create.html", {"error": str(exc)})
 
@@ -241,7 +253,7 @@ def subscription_create(request):
         plans = []
 
     if request.method == "POST":
-        mode = request.POST.get("mode", "plan")
+        mode = request.POST.get("mode", "standalone" if not plans else "plan")
 
         customer_name = request.POST.get("customer_name", "Usuário Teste")
         customer_email = request.POST.get(
@@ -251,12 +263,17 @@ def subscription_create(request):
         card_number = request.POST.get("card_number", "4000000000000010")
         card_holder = request.POST.get("card_holder", "Usuário Teste")
         card_exp_month = int(request.POST.get("card_exp_month", 12))
-        card_exp_year = int(request.POST.get("card_exp_year", 2030))
-        card_cvv = request.POST.get("card_cvv", "123")
+        card_exp_year = int(request.POST.get("card_exp_year", 30))
+        card_cvv = request.POST.get("card_cvv", "903")
 
         try:
             if mode == "plan":
-                plan_id = request.POST.get("plan_id", "")
+                plan_id = request.POST.get("plan_id", "").strip()
+                if not plan_id:
+                    return render(request, "payments/subscription_create.html", {
+                        "error": "Selecione um plano ativo ou altere para Avulsa (sem plano).",
+                        "plans": plans,
+                    })
                 sub = create_subscription_from_plan(
                     plan_id=plan_id,
                     customer_name=customer_name,
@@ -270,26 +287,73 @@ def subscription_create(request):
                 )
             else:
                 price_brl = request.POST.get("price", "29.90")
+                setup_price_brl = request.POST.get("setup_price", "59.90")
+                minimum_price_brl = request.POST.get("minimum_price", "100.00")
                 try:
                     price_cents = int(float(price_brl.replace(",", ".")) * 100)
                 except (ValueError, AttributeError):
                     price_cents = 2990
 
+                try:
+                    setup_price_cents = int(float(setup_price_brl.replace(",", ".")) * 100)
+                except (ValueError, AttributeError):
+                    setup_price_cents = 5990
+
+                try:
+                    minimum_price_cents = int(float(minimum_price_brl.replace(",", ".")) * 100)
+                except (ValueError, AttributeError):
+                    minimum_price_cents = 10000
+
                 sub = create_standalone_subscription(
                     item_description=request.POST.get(
-                        "item_description", "Assinatura mensal"),
+                        "item_description", "Musculação"),
                     item_price=price_cents,
                     customer_name=customer_name,
                     customer_email=customer_email,
                     customer_document=customer_document,
                     interval=request.POST.get("interval", "month"),
-                    interval_count=int(request.POST.get("interval_count", 1)),
+                    interval_count=int(request.POST.get("interval_count", 3)),
                     billing_type=request.POST.get("billing_type", "prepaid"),
+                    installments=int(request.POST.get("installments", 3)),
+                    minimum_price=minimum_price_cents,
+                    boleto_due_days=int(request.POST.get("boleto_due_days", 5)),
                     card_number=card_number,
                     card_holder_name=card_holder,
                     card_exp_month=card_exp_month,
                     card_exp_year=card_exp_year,
                     card_cvv=card_cvv,
+                    card_billing_address_line_1=request.POST.get(
+                        "billing_line_1", "4, Privet Drive"
+                    ),
+                    card_billing_address_line_2=request.POST.get(
+                        "billing_line_2", "Bedroom under the stairs"
+                    ),
+                    card_billing_address_zip_code=request.POST.get(
+                        "billing_zip_code", "20021130"
+                    ),
+                    card_billing_address_city=request.POST.get(
+                        "billing_city", "Little Whinging"
+                    ),
+                    card_billing_address_state=request.POST.get(
+                        "billing_state", "Surrey"
+                    ),
+                    card_billing_address_country=request.POST.get(
+                        "billing_country", "UK"
+                    ),
+                    discount_cycles=int(request.POST.get("discount_cycles", 3)),
+                    discount_value=int(request.POST.get("discount_value", 10)),
+                    discount_type=request.POST.get("discount_type", "percentage"),
+                    increment_cycles=int(request.POST.get("increment_cycles", 2)),
+                    increment_value=int(request.POST.get("increment_value", 20)),
+                    increment_type=request.POST.get("increment_type", "percentage"),
+                    item_quantity=int(request.POST.get("item_quantity", 1)),
+                    item_scheme_type=request.POST.get("item_scheme_type", "Unit"),
+                    setup_item_description=request.POST.get("setup_item_description", "Matrícula"),
+                    setup_item_price=setup_price_cents,
+                    setup_item_quantity=int(request.POST.get("setup_item_quantity", 1)),
+                    setup_item_cycles=int(request.POST.get("setup_item_cycles", 1)),
+                    setup_item_scheme_type=request.POST.get("setup_item_scheme_type", "Unit"),
+                    metadata_id=request.POST.get("metadata_id", "my_subscription_id"),
                 )
 
             return redirect("subscription_detail", sub_id=sub["id"])
