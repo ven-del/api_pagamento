@@ -120,7 +120,7 @@ api_pagamento/
   - Tratamento básico de erros (status code + json response)
 
 ### FASE 3 — Checkout (Link de Pagamento)
-**Endpoint:** `POST /checkout/links`
+**Endpoint:** `POST /paymentlinks`
 
 - [&check;] Serviço `payments/services/checkout.py`:
   - `create_checkout_link(amount, name, payment_methods, ...)` → retorna URL do checkout

@@ -3,6 +3,8 @@ Serviço de Checkout (Link de Pagamento) do Pagar.me.
 
 Endpoint: POST /paymentlinks
 """
+from django.conf import settings
+
 from .base import PagarmeClient
 
 
@@ -32,6 +34,12 @@ def create_checkout_link(
         payment_methods = ["credit_card"]
 
     client = PagarmeClient()
+    # Para Create Link em ambiente de teste, a documentação oficial orienta
+    # usar o host sdx-api com chave sk_test.
+    secret_key = str(getattr(settings, "PAGARME_SECRET_KEY", "")).strip()
+    if secret_key.startswith("sk_test_"):
+        client.BASE_URL = "https://sdx-api.pagar.me/core/v5"
+
     payload = {
         "is_building": False,
         "name": name,
